@@ -1,0 +1,1 @@
+use zxing to for the barcode scanning
