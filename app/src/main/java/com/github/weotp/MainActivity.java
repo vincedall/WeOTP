@@ -43,7 +43,7 @@ import java.util.Timer;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
-public class MainActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler{
+public class MainActivity extends AppCompatActivity{
     private ListView listView;
     private ArrayList<ListItem> itemsList = new ArrayList<>();
     private CustomAdapter adapter;
@@ -209,11 +209,6 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
         timer = new CustomTimer(30000 - (System.currentTimeMillis() % 30000),
                 1000, itemsList, adapter, this);
         timer.start();
-    }
-
-    @Override
-    public void handleResult(Result rawResult) {
-
     }
 }
 
