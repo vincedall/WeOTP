@@ -66,20 +66,20 @@ public class HOTP {
         int counter = 0;
         long result = 0;
         ArrayList<Byte> bytes = new ArrayList<>();
+        Map<String, Integer> base32 = new HashMap<String, Integer>(){{
+            put("A", 0); put("a", 0); put("B", 1); put("b", 1); put("C", 2); put("c", 2);
+            put("D", 3); put("d", 3); put("E", 4); put("e", 4); put("F", 5); put("f", 5);
+            put("G", 6); put("g", 6); put("H", 7); put("h", 7); put("I", 8); put("i", 8);
+            put("J", 9); put("j", 9); put("K", 10); put("k", 10); put("L", 11); put("l", 11);
+            put("M", 12); put("m", 12); put("N", 13); put("n", 13); put("O", 14); put("o", 14);
+            put("P", 15); put("p", 15); put("Q", 16); put("q", 16); put("R", 17); put("r", 17);
+            put("S", 18); put("s", 18); put("T", 19); put("t", 19); put("U", 20); put("u", 20);
+            put("V", 21); put("v", 21); put("W", 22); put("w", 22); put("X", 23); put("x", 23);
+            put("Y", 24); put("y", 24); put("Z", 25); put("z", 25); put("2", 26); put("3", 27);
+            put("4", 28); put("5", 29); put("6", 30); put("7", 31);
+        }};
         for (int i = 0; i < key.length(); i++){
             counter++;
-            Map<String, Integer> base32 = new HashMap<String, Integer>(){{
-                put("A", 0); put("a", 0); put("B", 1); put("b", 1); put("C", 2); put("c", 2);
-                put("D", 3); put("d", 3); put("E", 4); put("e", 4); put("F", 5); put("f", 5);
-                put("G", 6); put("g", 6); put("H", 7); put("h", 7); put("I", 8); put("i", 8);
-                put("J", 9); put("j", 9); put("K", 10); put("k", 10); put("L", 11); put("l", 11);
-                put("M", 12); put("m", 12); put("N", 13); put("n", 13); put("O", 14); put("o", 14);
-                put("P", 15); put("p", 15); put("Q", 16); put("q", 16); put("R", 17); put("r", 17);
-                put("S", 18); put("s", 18); put("T", 19); put("t", 19); put("U", 20); put("u", 20);
-                put("V", 21); put("v", 21); put("W", 22); put("w", 22); put("X", 23); put("x", 23);
-                put("Y", 24); put("y", 24); put("Z", 25); put("z", 25); put("2", 26); put("3", 27);
-                put("4", 28); put("5", 29); put("6", 30); put("7", 31);
-            }};
             long index = base32.get(key.substring(i, i + 1));
             result = result << 5;
             result = result + index;

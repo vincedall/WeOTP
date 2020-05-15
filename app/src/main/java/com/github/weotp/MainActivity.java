@@ -2,12 +2,18 @@ package com.github.weotp;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -17,6 +23,7 @@ import android.graphics.PorterDuff;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.preference.PreferenceManager;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.AdapterView;
@@ -24,6 +31,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import com.google.zxing.Result;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,11 +41,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 
-public class MainActivity extends AppCompatActivity{
+import me.dm7.barcodescanner.zxing.ZXingScannerView;
+
+public class MainActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler{
     private ListView listView;
     private ArrayList<ListItem> itemsList = new ArrayList<>();
     private CustomAdapter adapter;
     private CustomTimer timer;
+    private EditText key;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +57,14 @@ public class MainActivity extends AppCompatActivity{
         listView = findViewById(R.id.list_view);
         setListView();
         setOTPs();
+        String[] permission = new String[]{Manifest.permission.CAMERA};
+        ActivityCompat.requestPermissions(MainActivity.this, permission, 200);
+        while(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED){
+            try {
+                Thread.sleep(1000);
+            }catch(Exception e){}
+        }
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -92,16 +113,24 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-        ImageView imageView = findViewById(R.id.add);
-        imageView.setOnClickListener(new View.OnClickListener() {
+        ImageView addKey = findViewById(R.id.add);
+        addKey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
                 dialog.setContentView(R.layout.key_menu);
-                final EditText key = dialog.findViewById(R.id.key);
+                key = dialog.findViewById(R.id.key);
                 final EditText appName = dialog.findViewById(R.id.app_name);
                 Button cancelButton = dialog.findViewById(R.id.cancel_button);
                 Button addButton = dialog.findViewById(R.id.add_button);
+                Button scanButton = dialog.findViewById(R.id.scan_button);
+                scanButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(MainActivity.this, Scanner.class);
+                        MainActivity.this.startActivityForResult(intent, 0);
+                    }
+                });
                 cancelButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -140,10 +169,17 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-
         timer = new CustomTimer(30000 - (System.currentTimeMillis() % 30000),
                 1000, itemsList, adapter, this);
         timer.start();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data != null)
+            if (key != null)
+                key.setText(data.getStringExtra("result"));
     }
 
     public void setOTPs(){
@@ -160,10 +196,11 @@ public class MainActivity extends AppCompatActivity{
 
     public void setListView(){
         itemsList = new ArrayList<>();
-        for (File file : new File(this.getFilesDir().getParent() + "/shared_prefs").listFiles()){
-            itemsList.add(new ListItem((int) (System.currentTimeMillis() / 30000) % 30,
-                    file.getName().substring(0, file.getName().length()-4)));
-        }
+        File[] files = new File(this.getFilesDir().getParent() + "/shared_prefs").listFiles();
+        if (files != null)
+            for (File file : files)
+                itemsList.add(new ListItem((int) (System.currentTimeMillis() / 30000) % 30,
+                        file.getName().substring(0, file.getName().length() - 4)));
         if (timer != null)
             timer.cancel();
         adapter = new CustomAdapter(this, itemsList);
@@ -172,6 +209,11 @@ public class MainActivity extends AppCompatActivity{
         timer = new CustomTimer(30000 - (System.currentTimeMillis() % 30000),
                 1000, itemsList, adapter, this);
         timer.start();
+    }
+
+    @Override
+    public void handleResult(Result rawResult) {
+
     }
 }
 
